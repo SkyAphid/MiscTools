@@ -6,6 +6,16 @@ import java.nio.file.Files;
 
 import javax.swing.JFileChooser;
 
+/**
+ * This is a mass find and replace program. The 2D Array "FIND_AND_REPLACE" at the bottom contains the content to be found and replaced. 
+ * 
+ * <br><br>The structure of that array works like this:
+ * <br>{
+ * <br>		{$FIND_ENTRY_1, $REPLACE_ENTRY_1},
+ * <br>		{$FIND_ENTRY_2, $REPLACE_ENTRY_2}, 
+ * <br>}
+ * 
+ */
 public class AutomatedFindAndReplaceProgram {
 	
 	public static final String EXTENSION = ".json";

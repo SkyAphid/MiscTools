@@ -5,6 +5,9 @@ import java.nio.file.Files;
 
 import javax.swing.JFileChooser;
 
+/**
+ * This class will allow you to select a Java Enum class and alphabetize its contents. The new alphabetized version is then saved over the original file.
+ */
 public class EnumAlphabetizer {
 	
 	@SuppressWarnings("unused")
