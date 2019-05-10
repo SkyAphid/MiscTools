@@ -1,11 +1,19 @@
 @ECHO OFF
 
-REM Mount the desired JDK bin folder to use its jlink command
-cd C:\Program Files\Java\jdk-11.0.3\bin\
+ECHO Beginning JLink. Please input the requested values:
 
-REM This runs a jlink command that'll create a JRE with the given modules
-jlink --add-modules java.se --output C:\Users\Brayden\Desktop\jre
+set /p jdkPath="Enter JDK \bin path: "
+set /p modulePath="Enter executable/module JAR paths (comma separated): "
+set /p modules="Enter modules to add (comma separated, use 'java.se' to include all): "
+set /p main="Enter main class name to evoke from launcher: "
+set /p exportPath="Enter an export path: "
 
-ECHO JLINK successful.
+ECHO Creating custom JRE with JLink, please wait...
+
+REM Mounts the JDK path and calls jlink using the inputted variables. The commands after --output are just optimization commands that'll help reduce filesize.
+cd %jdkPath%
+jlink --module-path %modulePath% --add-modules %modules% --launcher launcher=%main% --output %exportPath% --strip-debug --compress 2 --no-header-files --no-man-pages
+
+ECHO Finished.
 
 pause
