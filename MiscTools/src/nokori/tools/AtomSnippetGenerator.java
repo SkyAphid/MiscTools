@@ -25,6 +25,7 @@ public class AtomSnippetGenerator {
 		//Create filter for functions I want to be ignored - such as inner anonymous callbacks
 		ArrayList<String> functionFilter = new ArrayList<>();
 		functionFilter.add("callback()");
+		functionFilter.add("select()");
 		
 		//Begin conversion
 		Stack<String> rawFunctions = new Stack<>();
@@ -123,7 +124,7 @@ public class AtomSnippetGenerator {
 
 				//And finally, add the final ending parenthesis in
 				function += ")";
-				snippetFunction += "})";
+				snippetFunction += "})$" + tabStops;
 				
 				//If the final function is in the filter, don't add it
 				if (functionFilter.contains(function)) {
@@ -158,7 +159,7 @@ public class AtomSnippetGenerator {
 			
 			snippets += "\t'" + globalsName + ":" + rawFunction + "':";
 			snippets += "\n\t\t'prefix': '" + globalsName + "_" + rawFunction + "'";
-			snippets += "\n\t\t'body': '" + globalsName + ":" + snippetFunction + "$2'";
+			snippets += "\n\t\t'body': '" + globalsName + ":" + snippetFunction + "'";
 			snippets += "\n\t\t'description': '[write me]'";
 			snippets += "\n\n";
 		}
