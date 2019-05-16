@@ -26,17 +26,20 @@ public class AtomSnippetGenerator {
 		ArrayList<String> functionFilter = new ArrayList<>();
 		functionFilter.add("callback()");
 		functionFilter.add("select()");
+		functionFilter.add("select(index)");
 		
 		//Begin conversion
 		Stack<String> rawFunctions = new Stack<>();
 		Stack<String> snippetFunctions = new Stack<>();
+		Stack<String> descriptions = new Stack<>();
 		
-		getFunctions(classFile, rawFunctions, snippetFunctions, functionFilter);
+		getFunctions(classFile, rawFunctions, snippetFunctions, descriptions, functionFilter);
 		
 		Collections.reverse(rawFunctions);
 		Collections.reverse(snippetFunctions);
+		Collections.reverse(descriptions);
 		
-		buildSnippets(globalsName, rawFunctions, snippetFunctions);
+		buildSnippets(globalsName, rawFunctions, snippetFunctions, descriptions);
 	}
 	
 	/**
@@ -44,7 +47,7 @@ public class AtomSnippetGenerator {
 	 * 
 	 * Keep in mind that it's not perfect and may need human trimming.
 	 */
-	public static void getFunctions(File classFile, Stack<String> rawFunctions, Stack<String> snippetFunctions, ArrayList<String> functionFilter) {
+	public static void getFunctions(File classFile, Stack<String> rawFunctions, Stack<String> snippetFunctions, Stack<String> descriptions, ArrayList<String> functionFilter) {
 		System.out.println("Starting getFunctions():");
 
 		try {
@@ -65,6 +68,17 @@ public class AtomSnippetGenerator {
 				//This weeds out undesirable content (non-functions)
 				if (start == -1 || end == -1) {
 					continue;
+				}
+				
+				//Fetches the comment above if there is one (uses it as the description)
+				String description = "";
+				
+				if (i - 1 >= 0) {
+					String d = splitContent[i-1].replace("\t", "").replace("\n", "").replace("\r", "");
+					
+					if (d.startsWith("//")) {
+						description = d.replace("//", "");
+					}
 				}
 
 				//Find public functions and isolate them
@@ -128,15 +142,20 @@ public class AtomSnippetGenerator {
 				
 				//If the final function is in the filter, don't add it
 				if (functionFilter.contains(function)) {
-					System.out.println(function + " is in the function filter. Skipping...");
+					System.out.println(function + " is in the function filter. Skipping...\n");
 					continue;
 				}
 				
-				System.out.println("Result: " + function + " | " + snippetFunction);
+				System.out.println("Result: ");
+				System.out.println("Raw Function: " + function);
+				System.out.println("Snippet Function: " + snippetFunction);
+				System.out.println("Description: " + description);
+				System.out.println();
 				
 				//Add function to the list
 				rawFunctions.push(function);
 				snippetFunctions.push(snippetFunction);
+				descriptions.push(description);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -147,7 +166,7 @@ public class AtomSnippetGenerator {
 	 * Automatically generates a snippets .cson file beside the given .txt file of functionNames. The functions must be separated by new lines (\n), which is
 	 * done automatically by <code>getFunctions()</code>. The filename is the assumed name of the globals that the snippets are being generated for.
 	 */
-	public static void buildSnippets(String globalsName, Stack<String> rawFunctions, Stack<String> snippetFunctions) {
+	public static void buildSnippets(String globalsName, Stack<String> rawFunctions, Stack<String> snippetFunctions, Stack<String> descriptions) {
 		
 		System.out.println("\nStarting buildSnippets():");
 		
@@ -156,11 +175,12 @@ public class AtomSnippetGenerator {
 		while(!rawFunctions.isEmpty()) {
 			String rawFunction = rawFunctions.pop();
 			String snippetFunction = snippetFunctions.pop();
+			String description = descriptions.pop();
 			
 			snippets += "\t'" + globalsName + ":" + rawFunction + "':";
 			snippets += "\n\t\t'prefix': '" + globalsName + "_" + rawFunction + "'";
 			snippets += "\n\t\t'body': '" + globalsName + ":" + snippetFunction + "'";
-			snippets += "\n\t\t'description': '[write me]'";
+			snippets += "\n\t\t'description': '" + description + "'";
 			snippets += "\n\n";
 		}
 		
