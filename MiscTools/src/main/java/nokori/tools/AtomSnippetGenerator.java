@@ -17,29 +17,109 @@ import java.util.Stack;
 public class AtomSnippetGenerator {
 	
 	public static final void main(String[] args) {
-		
-		// I just input the settings manually like this, it's faster
-		File classFile = new File("D:/Projects/Git/RobotFarm/RobotFarmGame/src/nokori/robotfarm/lua/tools/LuaHUDTools.java");
-		String globalsName = "hudTools";
-		
-		//Create filter for functions I want to be ignored - such as inner anonymous callbacks
+		/*
+		Configuration settings for the generator. Add all desired classes you want the snippets contain into the arrays.
+		 */
+
+		//The classes to convert into snippets
+		String[] classPaths = new String[]{
+				"D:/Projects/IntelliJ/RobotFarm/RobotFarmGame/src/main/java/nokori/robotfarm/lua/tools/LuaEntityTools.java",
+				"D:/Projects/IntelliJ/RobotFarm/RobotFarmGame/src/main/java/nokori/robotfarm/lua/tools/LuaGameTools.java",
+				"D:/Projects/IntelliJ/RobotFarm/RobotFarmGame/src/main/java/nokori/robotfarm/lua/tools/LuaHUDTools.java",
+				"D:/Projects/IntelliJ/RobotFarm/RobotFarmGame/src/main/java/nokori/robotfarm/lua/tools/LuaItemTools.java",
+				"D:/Projects/IntelliJ/RobotFarm/RobotFarmGame/src/main/java/nokori/robotfarm/lua/tools/LuaPlayerTools.java",
+				"D:/Projects/IntelliJ/RobotFarm/RobotFarmGame/src/main/java/nokori/robotfarm/lua/tools/LuaWorldTools.java"
+		};
+
+		//the corresponding globals names for the above files
+		String[] globalsNames = new String[]{
+				"entityTools",
+				"gameTools",
+				"hudTools",
+				"itemTools",
+				"playerTools",
+				"worldTools"
+		};
+
+		//Snippets that are just generated as-is from the below array
+		String[][] manualSnippets = new String[][]{
+				{"GlobalTextKey", "GlobalTextKey", "GlobalTextKey", "Gets the container for the UI text keys. The built-in text keys can be accessed, but custom ones added can also be accessed if needed."},
+				{"Element", "Element", "Element", "Robot Farm's Element enumerator, containing the keys for the various battle Elements."},
+				{"ElementalAffinity", "ElementalAffinity", "ElementalAffinity", "Robot Farm's ElementalAffinity enumerator, containing the keys for the various affinity types for battle Elements."},
+
+				{"ItemID", "ItemID", "ItemID", "The enumerator containing a list of IDs for Robot Farm's built-in item types."},
+				{"Property", "Property", "Property", "This enumerator contains all the Property-types for items."},
+				{"TriggerEffect", "TriggerEffect", "TriggerEffect", "This enumerator contains all the Trigger Effect-types for items."},
+
+				{"SpriteSheetID", "SpriteSheetID", "SpriteSheetID", "This class contains all of the accessible SpriteSheetIDs for Entities."},
+				{"AokobotVariant", "AokobotVariant", "AokobotVariant", "This enumerator contains all the Aokobot variant types."},
+				{"MonsterVariant", "MonsterVariant", "MonsterVariant", "This enumerator contains all the Monster variant types."},
+
+				{"Personality", "Personality", "Personality", "This class allows access to the various Personality configurations and traits available for NPCs."},
+
+				{"SettingFlag", "SettingFlag", "SettingFlag", "This class contains all of the SettingFlags that can be configured and accessed in the WorldRegistry."},
+
+				{"EntityType", "EntityType", "EntityType", "This class contains all of the EntityTypes that are available in Robot Farm."},
+		};
+
+		//Create filter for functions I want to be ignored - such as inner anonymous callbacks & functions
 		ArrayList<String> functionFilter = new ArrayList<>();
 		functionFilter.add("callback()");
 		functionFilter.add("select()");
 		functionFilter.add("select(index)");
-		
+		functionFilter.add("getName()");
+		functionFilter.add("getDesc()");
+
+		//This will be adding to the front of the output. Adding in the header directly to the generator allows for me to just use CTRL-A, CTRL-V for pasing into the snippets CSON file.
+		String fileHeader = "'.source.lua':\n" +
+				"\n" +
+				"\t#This snippets file will allow the user to shortcut all of the functions available in the Robot Farm API\n" +
+				"\t#I'd normally go all out and make some sort of proper auto-complete system, but I don't think it's worth the effort when this works good enough\n" +
+				"\t#I use underscores to denote the usual lua colon (denoting functions) because Atom's autocomplete system cancels itself out if you actually use a colon, sorry about that\n";
+
+		/*
+		Begin generation.
+		 */
+
+		String snippetOutput = fileHeader;
+
+		for (int i = 0; i < classPaths.length; i++){
+			snippetOutput += "\t#" + globalsNames[i] + " globals\n\n";
+			snippetOutput += run(classPaths[i], globalsNames[i], functionFilter);
+		}
+
+		for (int i = 0; i < manualSnippets.length; i++){
+			snippetOutput += generateSnippet(manualSnippets[i][0], manualSnippets[i][1], manualSnippets[i][2], manualSnippets[i][3]);
+		}
+
+		/*
+		Copy and paste the results into the clipboard.
+		 */
+		StringSelection selection = new StringSelection(snippetOutput);
+		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		clipboard.setContents(selection, selection);
+
+		System.out.println("\nCopied snippets to clipboard. Remember that you'll need to post-process these by hand.");
+	}
+
+	public static String run(String classPath, String globalsName, ArrayList<String> functionFilter){
+		// I just input the settings manually like this, it's faster
+		File classFile = new File(classPath);
+
 		//Begin conversion
 		Stack<String> rawFunctions = new Stack<>();
 		Stack<String> snippetFunctions = new Stack<>();
 		Stack<String> descriptions = new Stack<>();
-		
+
 		getFunctions(classFile, rawFunctions, snippetFunctions, descriptions, functionFilter);
-		
+
 		Collections.reverse(rawFunctions);
 		Collections.reverse(snippetFunctions);
 		Collections.reverse(descriptions);
-		
-		buildSnippets(globalsName, rawFunctions, snippetFunctions, descriptions);
+
+		String snippets = buildSnippets(globalsName, rawFunctions, snippetFunctions, descriptions);
+
+		return snippets;
 	}
 	
 	/**
@@ -166,7 +246,7 @@ public class AtomSnippetGenerator {
 	 * Automatically generates a snippets .cson file beside the given .txt file of functionNames. The functions must be separated by new lines (\n), which is
 	 * done automatically by <code>getFunctions()</code>. The filename is the assumed name of the globals that the snippets are being generated for.
 	 */
-	public static void buildSnippets(String globalsName, Stack<String> rawFunctions, Stack<String> snippetFunctions, Stack<String> descriptions) {
+	public static String buildSnippets(String globalsName, Stack<String> rawFunctions, Stack<String> snippetFunctions, Stack<String> descriptions) {
 		
 		System.out.println("\nStarting buildSnippets():");
 		
@@ -177,19 +257,49 @@ public class AtomSnippetGenerator {
 			String snippetFunction = snippetFunctions.pop();
 			String description = descriptions.pop();
 			
-			snippets += "\t'" + globalsName + ":" + rawFunction + "':";
-			snippets += "\n\t\t'prefix': '" + globalsName + "_" + rawFunction + "'";
-			snippets += "\n\t\t'body': '" + globalsName + ":" + snippetFunction + "'";
-			snippets += "\n\t\t'description': '" + description + "'";
-			snippets += "\n\n";
+			generateSnippet(globalsName + ":" + rawFunction, globalsName + "_" + rawFunction, globalsName + ":" + snippetFunction, description);
 		}
 		
 		System.out.print(snippets);
-		
-		StringSelection selection = new StringSelection(snippets);
-		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-		clipboard.setContents(selection, selection);
-		
-		System.out.println("\nCopied snippets to clipboard. Remember that you'll need to post-process these by hand.");
+
+		return snippets;
+	}
+
+	public static String generateSnippet(String snippetName, String snippetPrefix, String snippetBody, String snippetDescription){
+		String snippet = "";
+
+		snippet += "\t'" + snippetName + "':";
+		snippet += "\n\t\t'prefix': '" + snippetPrefix + "'";
+		snippet += "\n\t\t'body': '" + snippetBody + "'";
+		snippet += "\n\t\t'description': '" + parseCSONSpecialCharacters(snippetDescription) + "'";
+		snippet += "\n\n";
+
+		return snippet;
+	}
+
+	public static String parseCSONSpecialCharacters(String s){
+		StringBuilder b = new StringBuilder(s);
+
+		boolean quoteSwitch = false;
+
+		for (int i = 0; i < s.length(); i++){
+			char c = b.charAt(i);
+
+			if (c == '\'') {
+				b.setCharAt(i, '’');
+			}
+
+			if (c == '\"'){
+				if (quoteSwitch){
+					b.setCharAt(i, '”');
+				} else{
+					b.setCharAt(i, '“');
+				}
+
+				quoteSwitch = !quoteSwitch;
+			}
+		}
+
+		return b.toString();
 	}
 }
