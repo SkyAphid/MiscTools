@@ -60,6 +60,8 @@ public class AtomSnippetGenerator {
 				{"SettingFlag", "SettingFlag", "SettingFlag", "This class contains all of the SettingFlags that can be configured and accessed in the WorldRegistry."},
 
 				{"EntityType", "EntityType", "EntityType", "This class contains all of the EntityTypes that are available in Robot Farm."},
+
+                {"random", "random", "random", "A coerced copy of a Java Random class, allowing access to its arguably better tools than Lua's counterpart."},
 		};
 
 		//Create filter for functions I want to be ignored - such as inner anonymous callbacks & functions
