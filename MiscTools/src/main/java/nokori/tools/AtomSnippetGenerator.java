@@ -62,6 +62,7 @@ public class AtomSnippetGenerator {
 				{"EntityType", "EntityType", "EntityType", "This class contains all of the EntityTypes that are available in Robot Farm."},
 
                 {"random", "random", "random", "A coerced copy of a Java Random class, allowing access to its arguably better tools than Lua's counterpart."},
+				{"JavaArray", "JavaArray", "JavaArray", "This utility class will allow you to access arrays as they are in Java and other programming languages. Meaning that the starting index will be 0 (Arrays) instead of 1 (Lua tables)."},
 		};
 
 		//Create filter for functions I want to be ignored - such as inner anonymous callbacks & functions
@@ -259,7 +260,7 @@ public class AtomSnippetGenerator {
 			String snippetFunction = snippetFunctions.pop();
 			String description = descriptions.pop();
 			
-			generateSnippet(globalsName + ":" + rawFunction, globalsName + "_" + rawFunction, globalsName + ":" + snippetFunction, description);
+			snippets += generateSnippet(globalsName + ":" + rawFunction, globalsName + "_" + rawFunction, globalsName + ":" + snippetFunction, description);
 		}
 		
 		System.out.print(snippets);
