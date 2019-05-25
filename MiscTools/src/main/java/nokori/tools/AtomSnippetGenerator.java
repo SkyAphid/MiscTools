@@ -63,6 +63,7 @@ public class AtomSnippetGenerator {
 
                 {"random", "random", "random", "A coerced copy of a Java Random class, allowing access to its arguably better tools than Lua's counterpart."},
 				{"JavaArray", "JavaArray", "JavaArray", "This utility class will allow you to access arrays as they are in Java and other programming languages. Meaning that the starting index will be 0 (Arrays) instead of 1 (Lua tables)."},
+				{"JavaUtil", "JavaUtil", "JavaUtil", "This utility class contains various tools from Java for use in your Lua code."}
 		};
 
 		//Create filter for functions I want to be ignored - such as inner anonymous callbacks & functions
