@@ -20,15 +20,17 @@ public class AtomSnippetGenerator {
 		/*
 		Configuration settings for the generator. Add all desired classes you want the snippets contain into the arrays.
 		 */
+		
+		String pathToLuaToolsPackage = "D:/Projects/Eclipse Workspace/Git Projects/RobotFarm/RobotFarmGame/src/main/java/nokori/robotfarm/lua/tools/";
 
 		//The classes to convert into snippets
 		String[] classPaths = new String[]{
-				"D:/Projects/IntelliJ/RobotFarm/RobotFarmGame/src/main/java/nokori/robotfarm/lua/tools/LuaEntityTools.java",
-				"D:/Projects/IntelliJ/RobotFarm/RobotFarmGame/src/main/java/nokori/robotfarm/lua/tools/LuaGameTools.java",
-				"D:/Projects/IntelliJ/RobotFarm/RobotFarmGame/src/main/java/nokori/robotfarm/lua/tools/LuaHUDTools.java",
-				"D:/Projects/IntelliJ/RobotFarm/RobotFarmGame/src/main/java/nokori/robotfarm/lua/tools/LuaItemTools.java",
-				"D:/Projects/IntelliJ/RobotFarm/RobotFarmGame/src/main/java/nokori/robotfarm/lua/tools/LuaPlayerTools.java",
-				"D:/Projects/IntelliJ/RobotFarm/RobotFarmGame/src/main/java/nokori/robotfarm/lua/tools/LuaWorldTools.java"
+				pathToLuaToolsPackage + "LuaEntityTools.java",
+				pathToLuaToolsPackage + "LuaGameTools.java",
+				pathToLuaToolsPackage + "LuaHUDTools.java",
+				pathToLuaToolsPackage + "LuaItemTools.java",
+				pathToLuaToolsPackage + "LuaPlayerTools.java",
+				pathToLuaToolsPackage + "LuaWorldTools.java"
 		};
 
 		//the corresponding globals names for the above files
@@ -59,7 +61,8 @@ public class AtomSnippetGenerator {
 
 				{"SettingFlag", "SettingFlag", "SettingFlag", "This class contains all of the SettingFlags that can be configured and accessed in the WorldRegistry."},
 
-				{"EntityType", "EntityType", "EntityType", "This class contains all of the EntityTypes that are available in Robot Farm."},
+				{"EntityType", "EntityType", "EntityType", "This class contains all of the EntityTypes that are available in Robot Farm. Check the documentation for more information."},
+				{"UniquePointer", "UniquePointer", "UniquePointer", "This class contains a list of IDs that are set on special entities. Check the documentation for more information."},
 
                 {"random", "random", "random", "A coerced copy of a Java Random class, allowing access to its arguably better tools than Lua's counterpart."},
 				{"JavaArray", "JavaArray", "JavaArray", "This utility class will allow you to access arrays as they are in Java and other programming languages. Meaning that the starting index will be 0 (Arrays) instead of 1 (Lua tables)."},
@@ -261,7 +264,7 @@ public class AtomSnippetGenerator {
 			String snippetFunction = snippetFunctions.pop();
 			String description = descriptions.pop();
 			
-			snippets += generateSnippet(globalsName + ":" + rawFunction, globalsName + "_" + rawFunction, globalsName + ":" + snippetFunction, description);
+			snippets += generateSnippet(globalsName + "." + rawFunction, globalsName + "_" + rawFunction, globalsName + "." + snippetFunction, description);
 		}
 		
 		System.out.print(snippets);
