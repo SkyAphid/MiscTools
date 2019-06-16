@@ -49,9 +49,10 @@ public class AtomSnippetGenerator {
 				{"Element", "Element", "Element", "Robot Farm's Element enumerator, containing the keys for the various battle Elements."},
 				{"ElementalAffinity", "ElementalAffinity", "ElementalAffinity", "Robot Farm's ElementalAffinity enumerator, containing the keys for the various affinity types for battle Elements."},
 
-				{"ItemID", "ItemID", "ItemID", "The enumerator containing a list of IDs for Robot Farm's built-in item types."},
+				{"ItemCategoryID", "ItemCategoryID", "ItemCategoryID", "The enumerator containing a list of IDs for Robot Farm's built-in item categories."},
 				{"Property", "Property", "Property", "This enumerator contains all the Property-types for items."},
 				{"TriggerEffect", "TriggerEffect", "TriggerEffect", "This enumerator contains all the Trigger Effect-types for items."},
+				{"AgriculturalEquipmentType", "AgriculturalEquipmentType", "AgriculturalEquipmentType", "This enumerator contains all the types available for Agricultural Equipment (axes, hammers, etc)."},
 
 				{"SpriteSheetID", "SpriteSheetID", "SpriteSheetID", "This class contains all of the accessible SpriteSheetIDs for Entities."},
 				{"AokobotVariant", "AokobotVariant", "AokobotVariant", "This enumerator contains all the Aokobot variant types."},
