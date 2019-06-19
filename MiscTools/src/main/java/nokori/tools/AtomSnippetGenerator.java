@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,58 +17,61 @@ import java.util.Stack;
  */
 public class AtomSnippetGenerator {
 	
+	private static final String PROJECT_PATH = "D:/Projects/Eclipse Workspace/Git Projects/RobotFarm/RobotFarmGame/src/main/java/nokori/robotfarm/";
+	private static final String LUA_TOOLS_PACKAGE = PROJECT_PATH + "lua/tools/";
+	private static final String ENTITY_DESCRIPTOR_PACKAGE = PROJECT_PATH + "entity/descriptors/";
+	
 	public static final void main(String[] args) {
 		/*
 		Configuration settings for the generator. Add all desired classes you want the snippets contain into the arrays.
 		 */
-		
-		String pathToLuaToolsPackage = "D:/Projects/Eclipse Workspace/Git Projects/RobotFarm/RobotFarmGame/src/main/java/nokori/robotfarm/lua/tools/";
-
-		//The classes to convert into snippets
-		String[] classPaths = new String[]{
-				pathToLuaToolsPackage + "LuaEntityTools.java",
-				pathToLuaToolsPackage + "LuaGameTools.java",
-				pathToLuaToolsPackage + "LuaHUDTools.java",
-				pathToLuaToolsPackage + "LuaItemTools.java",
-				pathToLuaToolsPackage + "LuaPlayerTools.java",
-				pathToLuaToolsPackage + "LuaWorldTools.java"
+		//Globals names paired with their respective files
+		//Instantiated globals start with lowercase letters, static ones start with capital letters
+		String[][] globals = new String[][]{
+			//Lua tools
+			{"entityTools", LUA_TOOLS_PACKAGE + "LuaEntityTools.java"},
+			{"gameTools", LUA_TOOLS_PACKAGE + "LuaGameTools.java"},
+			{"hudTools", LUA_TOOLS_PACKAGE + "LuaHUDTools.java"},
+			{"itemTools", LUA_TOOLS_PACKAGE + "LuaItemTools.java"},
+			{"playerTools", LUA_TOOLS_PACKAGE + "LuaPlayerTools.java"},
+			{"worldTools", LUA_TOOLS_PACKAGE + "LuaWorldTools.java"},
+			
+			//Java utilities
+			{"JavaArray", LUA_TOOLS_PACKAGE + "JavaArray.java"},
+			{"JavaUtil", LUA_TOOLS_PACKAGE + "JavaUtil.java"},
+			
+			//Text keys
+			{"GlobalTextKey", PROJECT_PATH + "textkeys/GlobalTextKey.java"},
+			
+			//Combat
+			{"Element", PROJECT_PATH + "battle/element/Element.java"},
+			{"ElementalAffinity", PROJECT_PATH + "battle/element/ElementalAffinity.java"},
+			
+			//Items
+			{"ItemCategoryID", PROJECT_PATH + "item/ItemCategoryID.java"},
+			{"Property", PROJECT_PATH + "bestiary/Property.java"},
+			{"TriggerEffect", PROJECT_PATH + "item/TriggerEffect.java"},
+			{"AgriculturalEquipmentType", PROJECT_PATH + "/item/AgriculturalEquipmentType.java"},
+			
+			//Personality entity component
+			{"Personality", PROJECT_PATH + "entity/components/Personality.java"},
+			
+			//WorldRegistry
+			{"SettingFlag", PROJECT_PATH + "world/WorldRegistry.java"},
+			
+			//Entity descriptors
+			{"Alignment", ENTITY_DESCRIPTOR_PACKAGE + "Alignment.java"},
+			{"EntityType", ENTITY_DESCRIPTOR_PACKAGE + "EntityType.java"},
+			{"Gender", ENTITY_DESCRIPTOR_PACKAGE + "Gender.java"},
+			{"Job", ENTITY_DESCRIPTOR_PACKAGE + "Job.java"},
+			{"UniquePointer", ENTITY_DESCRIPTOR_PACKAGE + "UniquePointer.java"}
 		};
 
-		//the corresponding globals names for the above files
-		String[] globalsNames = new String[]{
-				"entityTools",
-				"gameTools",
-				"hudTools",
-				"itemTools",
-				"playerTools",
-				"worldTools"
-		};
-
-		//Snippets that are just generated as-is from the below array
+		//Snippets that are just generated as-is from the below array. These are for classes like built-in java ones where we can't read the source file.
+		//Array Order: SnippetName, SnippetPrefix, SnippetBody, SnippetDescription
 		String[][] manualSnippets = new String[][]{
-				{"GlobalTextKey", "GlobalTextKey", "GlobalTextKey", "Gets the container for the UI text keys. The built-in text keys can be accessed, but custom ones added can also be accessed if needed."},
-				{"Element", "Element", "Element", "Robot Farm's Element enumerator, containing the keys for the various battle Elements."},
-				{"ElementalAffinity", "ElementalAffinity", "ElementalAffinity", "Robot Farm's ElementalAffinity enumerator, containing the keys for the various affinity types for battle Elements."},
-
-				{"ItemCategoryID", "ItemCategoryID", "ItemCategoryID", "The enumerator containing a list of IDs for Robot Farm's built-in item categories."},
-				{"Property", "Property", "Property", "This enumerator contains all the Property-types for items."},
-				{"TriggerEffect", "TriggerEffect", "TriggerEffect", "This enumerator contains all the Trigger Effect-types for items."},
-				{"AgriculturalEquipmentType", "AgriculturalEquipmentType", "AgriculturalEquipmentType", "This enumerator contains all the types available for Agricultural Equipment (axes, hammers, etc)."},
-
-				{"SpriteSheetID", "SpriteSheetID", "SpriteSheetID", "This class contains all of the accessible SpriteSheetIDs for Entities."},
-				{"AokobotVariant", "AokobotVariant", "AokobotVariant", "This enumerator contains all the Aokobot variant types."},
-				{"MonsterVariant", "MonsterVariant", "MonsterVariant", "This enumerator contains all the Monster variant types."},
-
-				{"Personality", "Personality", "Personality", "This class allows access to the various Personality configurations and traits available for NPCs."},
-
-				{"SettingFlag", "SettingFlag", "SettingFlag", "This class contains all of the SettingFlags that can be configured and accessed in the WorldRegistry."},
-
-				{"EntityType", "EntityType", "EntityType", "This class contains all of the EntityTypes that are available in Robot Farm. Check the documentation for more information."},
-				{"UniquePointer", "UniquePointer", "UniquePointer", "This class contains a list of IDs that are set on special entities. Check the documentation for more information."},
-
-                {"random", "random", "random", "A coerced copy of a Java Random class, allowing access to its arguably better tools than Lua's counterpart."},
-				{"JavaArray", "JavaArray", "JavaArray", "This utility class will allow you to access arrays as they are in Java and other programming languages. Meaning that the starting index will be 0 (Arrays) instead of 1 (Lua tables)."},
-				{"JavaUtil", "JavaUtil", "JavaUtil", "This utility class contains various tools from Java for use in your Lua code."}
+                {"random", "random", "random", "A coerced copy of a Java Random object, allowing access to its arguably better tools than Lua's counterpart. "
+                		+ "Look up its own documentation for more information."},
 		};
 
 		//Create filter for functions I want to be ignored - such as inner anonymous callbacks & functions
@@ -86,23 +90,27 @@ public class AtomSnippetGenerator {
 				"\t#I use underscores to denote the usual lua colon (denoting functions) because Atom's autocomplete system cancels itself out if you actually use a colon, sorry about that\n";
 
 		/*
-		Begin generation.
+		 * Begin Generation
 		 */
 
 		String snippetOutput = fileHeader;
 
-		for (int i = 0; i < classPaths.length; i++){
-			snippetOutput += "\t#" + globalsNames[i] + " globals\n\n";
-			snippetOutput += run(classPaths[i], globalsNames[i], functionFilter);
+		//Generated snippets from java files
+		for (int i = 0; i < globals.length; i++){
+			snippetOutput += "\t#" + globals[i][0] + " Globals\n\n";
+			snippetOutput += run(globals[i][1], globals[i][0], functionFilter);
 		}
 
+		//Manually created snippets
 		for (int i = 0; i < manualSnippets.length; i++){
+			snippetOutput += "\t#" + manualSnippets[i][0] + " Globals\n\n";
 			snippetOutput += generateSnippet(manualSnippets[i][0], manualSnippets[i][1], manualSnippets[i][2], manualSnippets[i][3]);
 		}
-
+			
 		/*
-		Copy and paste the results into the clipboard.
+		 * Copy and paste the results into the clipboard.
 		 */
+		
 		StringSelection selection = new StringSelection(snippetOutput);
 		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 		clipboard.setContents(selection, selection);
@@ -113,21 +121,104 @@ public class AtomSnippetGenerator {
 	public static String run(String classPath, String globalsName, ArrayList<String> functionFilter){
 		// I just input the settings manually like this, it's faster
 		File classFile = new File(classPath);
+		
+		try {
+			String content = new String(Files.readAllBytes(classFile.toPath()));
+			
+			/*
+			 * Build enumerator key snippets for the given content
+			 */
+			
+			String[][] enumKeys = getEnumKeys(classPath, content);
+			
+			/*
+			 * Build function snippets for the given content
+			 */
+			
+			//Fetch function names and put them into Stacks
+			//The indices of each Stack correspond to each other
+			Stack<String> rawFunctions = new Stack<>();
+			Stack<String> snippetFunctions = new Stack<>();
+			Stack<String> descriptions = new Stack<>();
 
-		//Begin conversion
-		Stack<String> rawFunctions = new Stack<>();
-		Stack<String> snippetFunctions = new Stack<>();
-		Stack<String> descriptions = new Stack<>();
+			getFunctions(content, rawFunctions, snippetFunctions, descriptions, functionFilter);
 
-		getFunctions(classFile, rawFunctions, snippetFunctions, descriptions, functionFilter);
+			Collections.reverse(rawFunctions);
+			Collections.reverse(snippetFunctions);
+			Collections.reverse(descriptions);
 
-		Collections.reverse(rawFunctions);
-		Collections.reverse(snippetFunctions);
-		Collections.reverse(descriptions);
+			//Build the snippets for the given function Stacks
+			String snippets = buildSnippets(globalsName, enumKeys, rawFunctions, snippetFunctions, descriptions);
 
-		String snippets = buildSnippets(globalsName, rawFunctions, snippetFunctions, descriptions);
+			return snippets;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	/**
+	 * Fetches an array of the key entries and their comments (if applicable) 
+	 */
+	public static String[][] getEnumKeys(String classPath, String content) {
+		System.out.println("Starting getEnumKeys() ------------------------------------------------------------------------\n");
 
-		return snippets;
+		String header = content.substring(0, content.indexOf("{") + 1);
+		
+		if (header.contains("enum")) {
+			System.out.println(classPath.replace(PROJECT_PATH, "") + " verified as an enumerator. Extracting keys into Atom snippets...");
+
+			//Remove the header, leaving the enum keys at the top of the string
+			String headerlessContent = content.replace(header, "");
+			
+			//Process the headerlessContent into the "raw keys," or the section of the class containing all of the enum keys 
+			int keysEnd = headerlessContent.indexOf(";");
+			
+			if (keysEnd == -1) {
+				//Some enum classes don't use a semi-colon to end them, but rather the whole class is just a set of enum keys. In which case, we'll use the ending bracket to find the end.
+				keysEnd = headerlessContent.indexOf("}");
+			}
+			
+			String rawKeys = headerlessContent.substring(0, keysEnd).replace("\t", "");
+			
+			//Check the enum uses constructors. Remove them to prevent the following split() call from getting confused by constructor function arguments
+			while (rawKeys.contains("(") && rawKeys.contains(")")) {
+				String constructor = rawKeys.substring(rawKeys.indexOf("("), rawKeys.indexOf(")") + 1);
+				rawKeys = rawKeys.replace(constructor, "");
+			}
+			
+			//Finally, build the array of isolated keys & comments
+			String[] keys = rawKeys.split(",");
+			String[] comments = new String[keys.length];
+			
+			for (int i = 0; i < keys.length; i++) {
+				//Extract comments 
+				if (keys[i].startsWith("//")) {
+					comments[i] = keys[i].substring(2, keys[i].indexOf(System.lineSeparator()));
+					keys[i] = keys[i].replace("//" + comments[i], "");
+				} else {
+					comments[i] = "";
+				}
+				
+				//Trim keys and comments and remove unnecessary spaces
+				keys[i] = keys[i].replace(System.lineSeparator(), "").trim();
+				comments[i] = comments[i].trim();
+			}
+			
+			//Print the result
+			System.out.println("Result:");
+			for (int i = 0; i < keys.length; i++) {
+				System.out.println("Index: " + i + " Key: " + keys[i] + " Comment: " + comments[i]);
+			}
+			
+			System.out.println("");
+			
+			return new String[][] {keys, comments};
+		} else {
+			System.out.println(classPath.replace(PROJECT_PATH, "") + " is not an enumerator. Continuing...");
+		}
+		
+		return null;
 	}
 	
 	/**
@@ -135,131 +226,189 @@ public class AtomSnippetGenerator {
 	 * 
 	 * Keep in mind that it's not perfect and may need human trimming.
 	 */
-	public static void getFunctions(File classFile, Stack<String> rawFunctions, Stack<String> snippetFunctions, Stack<String> descriptions, ArrayList<String> functionFilter) {
-		System.out.println("Starting getFunctions():");
+	public static void getFunctions(String content, Stack<String> rawFunctions, Stack<String> snippetFunctions, Stack<String> descriptions, ArrayList<String> functionFilter) {
+		System.out.println("Starting getFunctions() ------------------------------------------------------------------------\n");
 
-		try {
-			String content = new String(Files.readAllBytes(classFile.toPath()));
+		/*
+		 * Split the file by new line and read each line for function names
+		 */
+		String[] splitContent = content.split("\n");
 
-			// Split the file by new line and read each line for function names
-			String[] splitContent = content.split("\n");
+		for (int i = 0; i < splitContent.length; i++) {
 
-			for (int i = 0; i < splitContent.length; i++) {
-				String f = splitContent[i];
+			/*
+			 * 
+			 * STEP 1: Begin basic setup & weed out undesirable content
+			 * 
+			 */
 
-				String startTag = "\tpublic ";
-				String endTag = "{";
+			String f = splitContent[i];
 
-				int start = f.indexOf(startTag);
-				int end = f.indexOf(endTag, start);
+			String startTag = f.contains("static") ? "\tpublic static " : "\tpublic ";
+			String endTag = "{";
 
-				//This weeds out undesirable content (non-functions)
-				if (start == -1 || end == -1) {
-					continue;
-				}
-				
-				//Fetches the comment above if there is one (uses it as the description)
-				String description = "";
-				
-				if (i - 1 >= 0) {
-					String d = splitContent[i-1].replace("\t", "").replace("\n", "").replace("\r", "");
-					
-					if (d.startsWith("//")) {
-						description = d.replace("//", "");
-					}
-				}
+			int start = f.indexOf(startTag);
+			int end = f.indexOf(endTag, start);
 
-				//Find public functions and isolate them
-				//Step 1: find the "public void functionName()" bit, remove the "public", this leaves us with "void functionName()"
-				//Step 2: jump to the first space after that to isolate and remove the return type
-				//Note: we also keep two versions of the function on hand: one with tab stops (for making the snippets later) and one without (for naming the snippets)
-				String function = f.substring(start, end).replace(startTag, "");
-				String snippetFunction;
-				
-				function = function.substring(function.indexOf(" ") + 1);
-				
-				//Next, we isolate the arguments and simplify it down to a prettier form for the Atom snippet
-				int parenthesisStart = function.indexOf("(");
-				int parenthesisEnd = function.indexOf(")");
-				
-				//If there are no parenthesis, it's not a function (it might be a class name that made it through)
-				if (parenthesisStart == -1 || parenthesisEnd == -1) {
-					continue;
-				}
-				
-				//This will make the following edits easier
-				parenthesisStart++;
-				parenthesisEnd++;
-				
-				String arguments = function.substring(parenthesisStart, parenthesisEnd);
-				String[] argumentsArray = arguments.split(" ");
-				snippetFunction = function = function.replace(arguments, "").trim();
-				
-				//Re-add the variable names back in without the types (shortens the name and cleans it up)
-				//From here we also start separating the snippetFunction/rawFunction operations
-				int modulo = 2;
-				int tabStops = 1;
-				
-				for (int j = 0; j < argumentsArray.length; j++) {
-					if (j % modulo == 0) {
-						continue;
-					}
-					
-					//Create the raw function without the snippet syntax
-					function += argumentsArray[j].replace("(", "").replace(")", "");
-					
-					//Create a version of the function with snippet tab stops for ease of use
-					snippetFunction += "${" + tabStops + ":" + argumentsArray[j].replace("(", "").replace(")", "").replace(",", "},");
-					tabStops++;
-					
-					//Clean up the functions after
-					if (function.endsWith(",")) {
-						if (j + modulo < argumentsArray.length) {
-							function += " ";
-							snippetFunction += " ";
-						} else {
-							function = function.substring(0, function.length() - 1);
-							snippetFunction = snippetFunction.substring(0, snippetFunction.length() - 1);
-						}
-					}
-				}
-
-				//And finally, add the final ending parenthesis in
-				function += ")";
-				snippetFunction += "})$" + tabStops;
-				
-				//If the final function is in the filter, don't add it
-				if (functionFilter.contains(function)) {
-					System.out.println(function + " is in the function filter. Skipping...\n");
-					continue;
-				}
-				
-				System.out.println("Result: ");
-				System.out.println("Raw Function: " + function);
-				System.out.println("Snippet Function: " + snippetFunction);
-				System.out.println("Description: " + description);
-				System.out.println();
-				
-				//Add function to the list
-				rawFunctions.push(function);
-				snippetFunctions.push(snippetFunction);
-				descriptions.push(description);
+			// This weeds out undesirable content (non-functions)
+			if (start == -1 || end == -1) {
+				continue;
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
+
+			/*
+			 * STEP 2: Fetches the comment above the function if there is one and use it as
+			 * a description for the snippet
+			 */
+
+			String description = "";
+
+			if (i - 1 >= 0) {
+				String d = splitContent[i - 1].replace("\t", "").replace("\n", "").replace("\r", "");
+
+				if (d.startsWith("//")) {
+					description = d.replace("//", "");
+				}
+			}
+
+			/*
+			 * 
+			 * 
+			 * STEP 3: Find public functions and isolate them
+			 * 
+			 * 
+			 */
+
+			// We keep two versions of the function on hand:
+			// function: a version without Atom tab stops (used for naming the snippets
+			// later)
+			// snippetFunction: a version with Atom tab stops (e.g. the ${1:argument} bits)
+			// (for making the snippets later)
+			String function, snippetFunction;
+
+			// 1) Find the "public void functionName()" bit, remove the "public", this
+			// leaves us with "void functionName()"
+			// 2) Jump to the first space after that to isolate and remove the return type,
+			// ideally leaving us with "functionName()"
+			function = f.substring(start, end).replace(startTag, "");
+			function = function.substring(function.indexOf(" ") + 1);
+
+			/*
+			 * 
+			 * STEP 4: Next, we isolate the arguments and simplify it down to a prettier
+			 * form for the Atom snippet
+			 * 
+			 */
+
+			int parenthesisStart = function.indexOf("(");
+			int parenthesisEnd = function.indexOf(")");
+
+			// If there are no parenthesis, it's not a function (it might be a class name
+			// that made it through)
+			if (parenthesisStart == -1 || parenthesisEnd == -1) {
+				continue;
+			}
+
+			// This will make the following edits easier
+			parenthesisStart++;
+			parenthesisEnd++;
+
+			String arguments = function.substring(parenthesisStart, parenthesisEnd);
+			String[] argumentsArray = arguments.split(" ");
+			snippetFunction = function = function.replace(arguments, "").trim();
+
+			/*
+			 * 
+			 * STEP 5: Re-add the variable names back in without the types (shortens the
+			 * name and cleans it up)
+			 * 
+			 * From here we also start separating the snippetFunction/rawFunction operations
+			 * 
+			 */
+
+			int modulo = 2;
+			int tabStops = 1;
+
+			for (int j = 0; j < argumentsArray.length; j++) {
+				if (j % modulo == 0) {
+					continue;
+				}
+
+				// Create the raw function without the snippet syntax
+				function += argumentsArray[j].replace("(", "").replace(")", "");
+
+				// Create a version of the function with snippet tab stops for ease of use
+				snippetFunction += "${" + tabStops + ":"
+						+ argumentsArray[j].replace("(", "").replace(")", "").replace(",", "},");
+				tabStops++;
+
+				// Clean up the functions after
+				if (function.endsWith(",")) {
+					if (j + modulo < argumentsArray.length) {
+						function += " ";
+						snippetFunction += " ";
+					} else {
+						function = function.substring(0, function.length() - 1);
+						snippetFunction = snippetFunction.substring(0, snippetFunction.length() - 1);
+					}
+				}
+			}
+
+			/*
+			 * 
+			 * 
+			 * STEP 6: Finalization and cleanup
+			 * 
+			 * 
+			 */
+
+			// Add the final ending parenthesis in and close the tab stops (if there's more
+			// than just the one at the end)
+			function += ")";
+
+			if (tabStops > 1) {
+				snippetFunction += "}";
+			}
+
+			snippetFunction += ")$" + tabStops;
+
+			// If the final function is in the filter, don't add it
+			if (functionFilter.contains(function)) {
+				System.out.println(function + " is in the function filter. Skipping...\n");
+				continue;
+			}
+
+			System.out.println("Result: ");
+			System.out.println("Raw Function: " + function);
+			System.out.println("Snippet Function: " + snippetFunction);
+			System.out.println("Description: " + description);
+			System.out.println();
+
+			// Add function to the list
+			rawFunctions.push(function);
+			snippetFunctions.push(snippetFunction);
+			descriptions.push(description);
 		}
+
 	}
 
 	/**
 	 * Automatically generates a snippets .cson file beside the given .txt file of functionNames. The functions must be separated by new lines (\n), which is
 	 * done automatically by <code>getFunctions()</code>. The filename is the assumed name of the globals that the snippets are being generated for.
 	 */
-	public static String buildSnippets(String globalsName, Stack<String> rawFunctions, Stack<String> snippetFunctions, Stack<String> descriptions) {
+	public static String buildSnippets(String globalsName, String[][] enumKeys, Stack<String> rawFunctions, Stack<String> snippetFunctions, Stack<String> descriptions) {
 		
 		System.out.println("\nStarting buildSnippets():");
 		
 		String snippets = "";
 		
+		//Create enum key snippets (if applicable)
+		if (enumKeys != null) {
+			for (int i = 0; i < enumKeys.length; i++) {
+				snippets += generateSnippet(globalsName + "." + enumKeys[0][i], globalsName + "_" + enumKeys[0][i], globalsName + "." + enumKeys[0][i], enumKeys[1][i]);
+			}
+		}
+		
+		//Create function snippets (if applicable)
 		while(!rawFunctions.isEmpty()) {
 			String rawFunction = rawFunctions.pop();
 			String snippetFunction = snippetFunctions.pop();
