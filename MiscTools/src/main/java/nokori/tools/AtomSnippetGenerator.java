@@ -376,17 +376,23 @@ public class AtomSnippetGenerator {
 				System.out.println(function + " is in the function filter. Skipping...\n");
 				continue;
 			}
-
+			
 			System.out.println("Result: ");
 			System.out.println("Raw Function: " + function);
 			System.out.println("Snippet Function: " + snippetFunction);
 			System.out.println("Description: " + description);
-			System.out.println();
 
-			// Add function to the list
-			rawFunctions.push(function);
-			snippetFunctions.push(snippetFunction);
-			descriptions.push(description);
+			if (!rawFunctions.contains(function)) {
+				// Add function to the list if its not already in there 
+				rawFunctions.push(function);
+				snippetFunctions.push(snippetFunction);
+				descriptions.push(description);
+				System.out.println("Added to list. Continuing...");
+			} else {
+				System.out.println("Duplicate entry detected. Continuing...");
+			}
+			
+			System.out.println();
 		}
 
 	}
