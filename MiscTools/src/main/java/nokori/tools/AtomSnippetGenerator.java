@@ -35,6 +35,7 @@ public class AtomSnippetGenerator {
 			{"itemTools", LUA_TOOLS_PACKAGE + "LuaItemTools.java"},
 			{"playerTools", LUA_TOOLS_PACKAGE + "LuaPlayerTools.java"},
 			{"worldTools", LUA_TOOLS_PACKAGE + "LuaWorldTools.java"},
+			{"itemDatabase", PROJECT_PATH + "item/ItemDatabase.java"},
 			
 			//Java utilities
 			{"JavaArray", LUA_TOOLS_PACKAGE + "JavaArray.java"},
@@ -262,13 +263,36 @@ public class AtomSnippetGenerator {
 
 			String description = "";
 
-			if (i - 1 >= 0) {
-				String d = splitContent[i - 1].replace("\t", "").replace("\n", "").replace("\r", "");
+			int upIterator = i - 1;
+			
+			String singleLineCommentTag = "//";
+			
+			String multiLineCommentStartTag = "*/";
+			String multiLineCommentBodyTag = "\t *";
+			String multiLineCommentEndTag = "*/";
+			String multiLineCommentParameter = "* @";
+			
+			descIterator:
+			while (upIterator >= 0) {
+				String d = splitContent[upIterator];
 
-				if (d.startsWith("//")) {
-					description = d.replace("//", "");
+				//Checks the current line for a comment. If no comment is found, end the description search.
+				if (d.startsWith(singleLineCommentTag)) {
+					//One line comment
+					description += d.replace(singleLineCommentTag, "");
+				} else if (d.contains(multiLineCommentStartTag) || d.contains(multiLineCommentBodyTag) || d.contains(multiLineCommentEndTag)) {
+					//Multi-line comment (ignores parameter/return-type lines)
+					if (!d.contains(multiLineCommentParameter)) {
+						description += d.replace(multiLineCommentStartTag, "").replace(multiLineCommentBodyTag, "").replace(multiLineCommentEndTag, "");
+					}
+				} else {
+					break descIterator;
 				}
+				
+				upIterator--;
 			}
+			
+			description = description.replace("\t", "").replace("\n", "").replace("\r", "").trim();
 
 			/*
 			 * 
