@@ -116,7 +116,7 @@ public class AtomSnippetGenerator {
 		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 		clipboard.setContents(selection, selection);
 
-		System.out.println("\nCopied snippets to clipboard. Remember that you'll need to post-process these by hand.");
+		System.out.println("\nCopied snippets to clipboard.");
 	}
 
 	public static String run(String classPath, String globalsName, ArrayList<String> functionFilter){
@@ -148,9 +148,12 @@ public class AtomSnippetGenerator {
 			Collections.reverse(snippetFunctions);
 			Collections.reverse(descriptions);
 
-			//Build the snippets for the given function Stacks
-			String snippets = buildSnippets(globalsName, enumKeys, rawFunctions, snippetFunctions, descriptions);
-
+			String snippets = "";
+			
+			if (!rawFunctions.isEmpty()) {
+				snippets = buildSnippets(globalsName, enumKeys, rawFunctions, snippetFunctions, descriptions);
+			}
+			
 			return snippets;
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -162,7 +165,7 @@ public class AtomSnippetGenerator {
 	 * Fetches an array of the key entries and their comments (if applicable) 
 	 */
 	public static String[][] getEnumKeys(String classPath, String content) {
-		System.out.println("Starting getEnumKeys() ------------------------------------------------------------------------\n");
+		System.out.println("Starting getEnumKeys() ------------------------------------------------------------------------");
 
 		String header = content.substring(0, content.indexOf("{") + 1);
 		
@@ -216,7 +219,7 @@ public class AtomSnippetGenerator {
 			
 			return new String[][] {keys, comments};
 		} else {
-			System.out.println(classPath.replace(PROJECT_PATH, "") + " is not an enumerator. Continuing...");
+			System.out.println(classPath.replace(PROJECT_PATH, "") + " is not an enumerator. Aborting.\n");
 		}
 		
 		return null;
@@ -228,13 +231,13 @@ public class AtomSnippetGenerator {
 	 * Keep in mind that it's not perfect and may need human trimming.
 	 */
 	public static void getFunctions(String content, Stack<String> rawFunctions, Stack<String> snippetFunctions, Stack<String> descriptions, ArrayList<String> functionFilter) {
-		System.out.println("Starting getFunctions() ------------------------------------------------------------------------\n");
+		System.out.println("Starting getFunctions() ------------------------------------------------------------------------");
 
 		/*
 		 * Split the file by new line and read each line for function names
 		 */
 		String[] splitContent = content.split("\n");
-
+		
 		for (int i = 0; i < splitContent.length; i++) {
 
 			/*
@@ -245,7 +248,8 @@ public class AtomSnippetGenerator {
 
 			String f = splitContent[i];
 
-			String startTag = f.contains("static") ? "\tpublic static " : "\tpublic ";
+			//These originally were : \tpublic static & \tpublic, but some classes don't have this formatting, so I'm removing the tab characters for now.
+			String startTag = f.contains("static") ? "public static " : "public ";
 			String endTag = "{";
 
 			int start = f.indexOf(startTag);
@@ -419,6 +423,9 @@ public class AtomSnippetGenerator {
 			System.out.println();
 		}
 
+		if (rawFunctions.isEmpty()) {
+			System.out.println("No functions found. Continuing...");
+		}
 	}
 
 	/**
@@ -427,7 +434,7 @@ public class AtomSnippetGenerator {
 	 */
 	public static String buildSnippets(String globalsName, String[][] enumKeys, Stack<String> rawFunctions, Stack<String> snippetFunctions, Stack<String> descriptions) {
 		
-		System.out.println("\nStarting buildSnippets():");
+		System.out.println("\nStarting buildSnippets(): ------------------------------------------------------------------------");
 		
 		String snippets = "";
 		
