@@ -52,7 +52,7 @@ public class AtomSnippetGenerator {
 			{"ItemCategoryID", PROJECT_PATH + "item/ItemCategoryID.java"},
 			{"Property", PROJECT_PATH + "bestiary/Property.java"},
 			{"TriggerEffect", PROJECT_PATH + "item/TriggerEffect.java"},
-			{"AgriculturalEquipmentType", PROJECT_PATH + "/item/AgriculturalEquipmentType.java"},
+			{"AgriculturalToolType", PROJECT_PATH + "/item/AgriculturalToolType.java"},
 			
 			//Personality entity component
 			{"Personality", PROJECT_PATH + "entity/components/Personality.java"},
