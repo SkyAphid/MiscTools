@@ -19,15 +19,19 @@ public class AtomSnippetGenerator {
 	
 	private static final String PROJECT_PATH = "D:/Projects/Eclipse Workspace/Git Projects/RobotFarm/RobotFarmGame/src/main/java/nokori/robotfarm/";
 	private static final String LUA_TOOLS_PACKAGE = PROJECT_PATH + "lua/tools/";
-	private static final String ENTITY_DESCRIPTOR_PACKAGE = PROJECT_PATH + "entity/descriptors/";
-	
+
 	public static final void main(String[] args) {
 		/*
-		Configuration settings for the generator. Add all desired classes you want the snippets contain into the arrays.
+		 * Configuration settings for the snippet generator are hosted below.
+		 * 
+		 * Insert the names of classes and their locations into the below array, and the generator will locate them and generate snippet documentation for them at runtime.
 		 */
+		
 		//Globals names paired with their respective files
 		//Instantiated globals start with lowercase letters, static ones start with capital letters
+		//The order of the classes are the same as they are in Robot Farm's LuaManager class for clarity purposes.
 		String[][] globals = new String[][]{
+			
 			//Lua tools
 			{"entityTools", LUA_TOOLS_PACKAGE + "LuaEntityTools.java"},
 			{"gameTools", LUA_TOOLS_PACKAGE + "LuaGameTools.java"},
@@ -35,37 +39,58 @@ public class AtomSnippetGenerator {
 			{"itemTools", LUA_TOOLS_PACKAGE + "LuaItemTools.java"},
 			{"playerTools", LUA_TOOLS_PACKAGE + "LuaPlayerTools.java"},
 			{"worldTools", LUA_TOOLS_PACKAGE + "LuaWorldTools.java"},
-			{"itemDatabase", PROJECT_PATH + "item/ItemDatabase.java"},
-			
+			{"itemDatabase", PROJECT_PATH + "item/database/ItemDatabase.java"},
+
 			//Java utilities
 			{"JavaArray", LUA_TOOLS_PACKAGE + "JavaArray.java"},
 			{"JavaUtil", LUA_TOOLS_PACKAGE + "JavaUtil.java"},
 			
-			//Text keys
-			{"GlobalTextKey", PROJECT_PATH + "textkeys/GlobalTextKey.java"},
-			
-			//Combat
+			//Entity creation tools
+			{"QuickEntity", PROJECT_PATH + "entity/util/QuickEntity.java"},
+			{"NPCGenerator", PROJECT_PATH + "world/generators/NPCGenerator.java"},
+		
+			//Stats & Items
 			{"Element", PROJECT_PATH + "battle/element/Element.java"},
 			{"ElementalAffinity", PROJECT_PATH + "battle/element/ElementalAffinity.java"},
+			{"Stat", PROJECT_PATH + "battle/stats/Stat.java"},
 			
-			//Items
-			{"ItemCategoryID", PROJECT_PATH + "item/ItemCategoryID.java"},
-			{"Property", PROJECT_PATH + "bestiary/Property.java"},
+			{"ItemCategoryID", PROJECT_PATH + "battle/element/Element.java"},
+			{"AgriculturalToolType", PROJECT_PATH + "item/AgriculturalToolType.java"},
 			{"TriggerEffect", PROJECT_PATH + "item/TriggerEffect.java"},
-			{"AgriculturalToolType", PROJECT_PATH + "/item/AgriculturalToolType.java"},
 			
-			//Personality entity component
+			{"Property", PROJECT_PATH + "bestiary/Property.java"},
+			{"CreatureVariant", PROJECT_PATH + "bestiary/CreatureVariant.java"},
+			
+			//Sprites & Variants
+			{"SpriteSheetID", PROJECT_PATH + "sprites/SpriteSheetID.java"},
+			{"AokobotVariant", PROJECT_PATH + "bestiary/AokobotVariant.java"},
+			{"MonsterVariant", PROJECT_PATH + "bestiary/MonsterVariant.java"},
+			
+			//GeneralStats Entity Component
+			{"GeneralStats", PROJECT_PATH + "entity/components/GeneralStats.java"},
+			{"EntityType", PROJECT_PATH + "entity/descriptors/EntityType.java"},
+			{"Job", PROJECT_PATH + "entity/descriptors/Job.java"},
+			{"UniquePointer", PROJECT_PATH + "entity/descriptors/UniquePointer.java"},
+			{"Gender", PROJECT_PATH + "entity/descriptors/Gender.java"},
+			{"Alignment", PROJECT_PATH + "entity/descriptors/Alignment.java"},
+			
+			//Inventory Entity Component
+			{"Inventory", PROJECT_PATH + "entity/components/Inventory.java"},
+			
+			//Personality Entity Component
 			{"Personality", PROJECT_PATH + "entity/components/Personality.java"},
+			{"PersonalityTrait", PROJECT_PATH + "entity/components/PersonalityTrait.java"},
+
+			//Memory Entity Component
+			{"Memory", PROJECT_PATH + "entity/components/Memory.java"},
+			{"Mood", PROJECT_PATH + "entity/components/Memory.java"},
+			
+			//Portrait Entity Component
+			{"Portrait", PROJECT_PATH + "entity/components/Portrait.java"},
+			{"PortraitGenderTag", PROJECT_PATH + "entity/components/PortraitGenderTag.java"},
 			
 			//WorldRegistry
-			{"SettingFlag", PROJECT_PATH + "world/WorldRegistry.java"},
-			
-			//Entity descriptors
-			{"Alignment", ENTITY_DESCRIPTOR_PACKAGE + "Alignment.java"},
-			{"EntityType", ENTITY_DESCRIPTOR_PACKAGE + "EntityType.java"},
-			{"Gender", ENTITY_DESCRIPTOR_PACKAGE + "Gender.java"},
-			{"Job", ENTITY_DESCRIPTOR_PACKAGE + "Job.java"},
-			{"UniquePointer", ENTITY_DESCRIPTOR_PACKAGE + "UniquePointer.java"}
+			{"WorldRegistrySettingFlag", PROJECT_PATH + "world/WorldRegistrySettingFlag.java"},
 		};
 
 		//Snippets that are just generated as-is from the below array. These are for classes like built-in java ones where we can't read the source file.
@@ -98,8 +123,15 @@ public class AtomSnippetGenerator {
 
 		//Generated snippets from java files
 		for (int i = 0; i < globals.length; i++){
-			snippetOutput += "\t#" + globals[i][0] + " Globals\n\n";
-			snippetOutput += run(globals[i][1], globals[i][0], functionFilter);
+			snippetOutput += "\t#" + globals[i][0] + " Globals\n";
+			
+			String generatedSnippet = run(globals[i][1], globals[i][0], functionFilter);
+			
+			if (generatedSnippet == null || generatedSnippet.trim().isEmpty()) {
+				snippetOutput += "\t#(No documentation available)\n\n";
+			} else {
+				snippetOutput += "\n" + generatedSnippet;
+			}
 		}
 
 		//Manually created snippets
@@ -172,10 +204,16 @@ public class AtomSnippetGenerator {
 		if (header.contains("enum")) {
 			System.out.println(classPath.replace(PROJECT_PATH, "") + " verified as an enumerator. Extracting keys into Atom snippets...");
 
-			//Remove the header, leaving the enum keys at the top of the string
+			/*
+			 * Remove the header, leaving the enum keys at the top of the string
+			 */
+			
 			String headerlessContent = content.replace(header, "");
 			
-			//Process the headerlessContent into the "raw keys," or the section of the class containing all of the enum keys 
+			/*
+			 * Process the headerlessContent into the "raw keys," or the section of the class containing all of the enum keys 
+			 */
+			
 			int keysEnd = headerlessContent.indexOf(";");
 			
 			if (keysEnd == -1) {
@@ -183,33 +221,101 @@ public class AtomSnippetGenerator {
 				keysEnd = headerlessContent.indexOf("}");
 			}
 			
-			String rawKeys = headerlessContent.substring(0, keysEnd).replace("\t", "");
+			/*
+			 * Create the raw keys. Remove tabs. Remove empty constructors (e.g. objects being inserted into enumerators)
+			 */
 			
-			//Check the enum uses constructors. Remove them to prevent the following split() call from getting confused by constructor function arguments
+			String rawKeys = headerlessContent.substring(0, keysEnd).replace("\t", "").replace("()", "");
+			
+			/*
+			 * Check if the enum uses constructors. Remove them to prevent the following split() call from getting confused by constructor function arguments
+			 */
 			while (rawKeys.contains("(") && rawKeys.contains(")")) {
-				String constructor = rawKeys.substring(rawKeys.indexOf("("), rawKeys.indexOf(")") + 1);
+				
+				int start = rawKeys.indexOf("(");
+				int end = rawKeys.indexOf(")") + 1;
+				
+				String constructor = rawKeys.substring(start, end);
+				
 				rawKeys = rawKeys.replace(constructor, "");
 			}
 			
-			//Finally, build the array of isolated keys & comments
+			/*
+			 * Finally, build the array of isolated keys & comments
+			 */
+			
 			String[] keys = rawKeys.split(",");
 			String[] comments = new String[keys.length];
 			
 			for (int i = 0; i < keys.length; i++) {
-				//Extract comments 
-				if (keys[i].startsWith("//")) {
-					comments[i] = keys[i].substring(2, keys[i].indexOf(System.lineSeparator()));
-					keys[i] = keys[i].replace("//" + comments[i], "");
-				} else {
-					comments[i] = "";
+				//By default we just set the comment to be nothing.
+				comments[i] = "";
+				
+				//Trim the keys entry to work with a cleaner string
+				String trimmedKey = keys[i].trim();
+				
+				/*
+				 * Debug printouts: starting outputs
+				 */
+				
+				//System.err.println();
+				//System.err.println("Starting Processing on Enum Entry " + i);
+				//System.err.println("Trimmed Unprocessed Key: [" + trimmedKey + "]");
+				
+				/*
+				 * SINGLE LINE COMMENT PROCESSOR
+				 */
+				
+				if (trimmedKey.startsWith("//")) {
+
+					//Isolate comment
+					comments[i] = trimmedKey.substring(0, lineSeparatorIndex(trimmedKey));
+					
+					//Remove comment from key entry
+					keys[i] = keys[i].replace(comments[i], "");
+					
+					//Clean up comment
+					comments[i] = comments[i].replaceFirst("//", "");
 				}
 				
-				//Trim keys and comments and remove unnecessary spaces
-				keys[i] = keys[i].replace(System.lineSeparator(), "").trim();
+				/*
+				 * MULTI-LINE COMMENT PROCESSOR
+				 */
+				
+				if (trimmedKey.startsWith("/*")) {
+					//Isolate comment
+					comments[i] = keys[i].substring(0, keys[i].indexOf("*/") + 2);
+					
+					//Remove comment from key entry
+					keys[i] = keys[i].replace(comments[i], "");
+					
+					//Clean up comment
+					comments[i] = comments[i].replace("/*" + System.lineSeparator(), "")
+							.replace("*/", "")
+							.replaceFirst("\\* ", "")
+							.replace(System.lineSeparator() + " * ", "; ");
+				}
+				
+				/*
+				 * FINAL CLEANUP OF PROCESSED ENUM KEYS AND COMMENTS
+				 */
+				
 				comments[i] = comments[i].trim();
+				keys[i] = keys[i].replace(System.lineSeparator(), "").trim();
+				
+				/*
+				 * Debug printouts: Final processed outputs
+				 */
+				
+				//System.err.println("Processed Final Enum Key: [" + keys[i] + "]");
+				//System.err.println("Processed Output Comment: [" + comments[i] + "]");
+				
 			}
 			
-			//Print the result
+			/*
+			 * Print the result
+			 */
+			
 			System.out.println("Result:");
 			for (int i = 0; i < keys.length; i++) {
 				System.out.println("Index: " + i + " Key: " + keys[i] + " Comment: " + comments[i]);
@@ -223,6 +329,20 @@ public class AtomSnippetGenerator {
 		}
 		
 		return null;
+	}
+	
+	/**
+	 * Get the index of the line separator in the string. I had to add the shitty workaround below because the string sometimes has a different new line character than what
+	 * the System gives back to us.
+	 */
+	private static int lineSeparatorIndex(String s) {
+		int lineSepIndex = s.indexOf(System.lineSeparator());
+		
+		if (lineSepIndex == -1) {
+			lineSepIndex = s.indexOf("\n");
+		}
+		
+		return lineSepIndex;
 	}
 	
 	/**
