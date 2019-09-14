@@ -557,11 +557,14 @@ public class AtomSnippetGenerator {
 		System.out.println("\nStarting buildSnippets(): ------------------------------------------------------------------------");
 		
 		String snippets = "";
+		String functionSeparator = ":";
 		
 		//Create enum key snippets (if applicable)
 		if (enumKeys != null) {
 			for (int i = 0; i < enumKeys.length; i++) {
-				snippets += generateSnippet(globalsName + "." + enumKeys[0][i], globalsName + "_" + enumKeys[0][i], globalsName + "." + enumKeys[0][i], enumKeys[1][i]);
+				snippets += generateSnippet(globalsName + functionSeparator + enumKeys[0][i],
+						globalsName + "_" + enumKeys[0][i], 
+						globalsName + functionSeparator + enumKeys[0][i], enumKeys[1][i]);
 			}
 		}
 		
@@ -571,7 +574,9 @@ public class AtomSnippetGenerator {
 			String snippetFunction = snippetFunctions.pop();
 			String description = descriptions.pop();
 			
-			snippets += generateSnippet(globalsName + "." + rawFunction, globalsName + "_" + rawFunction, globalsName + "." + snippetFunction, description);
+			snippets += generateSnippet(globalsName + functionSeparator + rawFunction, 
+					globalsName + "_" + rawFunction, 
+					globalsName + functionSeparator + snippetFunction, description);
 		}
 		
 		System.out.print(snippets);
